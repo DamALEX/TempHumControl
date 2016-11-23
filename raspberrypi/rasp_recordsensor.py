@@ -36,8 +36,8 @@ def collect(capteur, lieu):
 tempo = 59
 heure = 3
 jour = 32
-fromaddr = "dam.alexandre@gmail.com"
-toaddr = "alexandre.damien@hotmail.fr"
+fromaddr = « mail1@gmail.com"
+toaddr = « mail2@hotmail.fr"
 
 while 1:
 
@@ -105,7 +105,7 @@ while 1:
 
       server = smtplib.SMTP('smtp.gmail.com', 587)
       server.starttls()
-      server.login(fromaddr, "dam0.dam")
+      server.login(fromaddr, "MotDePasse")
       text = msg.as_string()
       server.sendmail(fromaddr, toaddr, text)
       server.quit()
