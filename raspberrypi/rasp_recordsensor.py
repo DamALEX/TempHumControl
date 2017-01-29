@@ -1,7 +1,8 @@
 #!/usr/bin/env python 
 # -*- coding: UTF-8 -*-
 
-# collecter les informations d'un capteur en précisant son numéro
+# Programme pour collecter la température ou/et l’humidité de 5 capteurs
+# Sauvegarde des données dans un fichier txt et envoi le ficher par courriel
 
 ############################################################################
 
@@ -18,6 +19,8 @@ from email import encoders
 
 ############################################################################
 
+# Fonction pour collecter les informations d'un capteur en précisant son numéro
+
 def collect(capteur, lieu):
   try:
     r = requests.get("http://192.168.1."+capteur+"/gettemp", timeout=2)
@@ -31,17 +34,41 @@ def collect(capteur, lieu):
   
   return tram
 
-#########################################################################
+############################################################################
+
+############################################################################
+
+# Fonction pour convertir la date
+
+def convdate(mois , annee):
+    
+    convmois = {'1':'decembre' , '2':'janvier' , '3':'fevrier' , '4':'mars' , '5':'avril' , '6':'mai' , '7':'juin' , '8':'juillet' , '9':'aout' , '10':'septembre' , '11':'octobre' , '12':'novembre'}
+
+    if mois == 1:
+        annee = annee - 1
+ 
+    mois = str(mois)
+    mois = convmois[mois]
+
+    texte = '_'+mois+str(annee)
+  
+    return texte
+
+############################################################################
 
 tempo = 59
-heure = 3
+heure = 0
 jour = 32
-fromaddr = « mail1@gmail.com"
-toaddr = « mail2@hotmail.fr"
+mois = 13
+annee = 1985
+fromaddr = "mail1@gmail.com"
+toaddr = "mail2@hotmail.fr"
+motdepasse = "motdepasse"
+addrdata = "/home/pi/data/data.txt" 
 
 while 1:
 
-  fichier = open("/home/pi/data/data.txt", "a")
+  fichier = open(addrdata , "a")
   
   txt = collect('30', 'exterieur')
   print txt
@@ -76,10 +103,12 @@ while 1:
   fichier.close()
 
   maintenant = time.localtime()
+
   print maintenant.tm_hour
-  print maintenant.tm_mday
   
   if heure == maintenant.tm_hour:
+
+    print maintenant.tm_mday	
 
     if jour != maintenant.tm_mday:
 
@@ -94,7 +123,7 @@ while 1:
       msg.attach(MIMEText(body, 'plain'))
 
       filename = "data.txt"
-      attachment = open("/home/pi/data/data.txt", "rb")
+      attachment = open(addrdata , "rb")
 
       part = MIMEBase('application', 'octet-stream')
       part.set_payload((attachment).read())
@@ -105,16 +134,31 @@ while 1:
 
       server = smtplib.SMTP('smtp.gmail.com', 587)
       server.starttls()
-      server.login(fromaddr, "MotDePasse")
+      server.login(fromaddr, motdepasse)
       text = msg.as_string()
       server.sendmail(fromaddr, toaddr, text)
       server.quit()
+      attachment.close()
 
       jour = maintenant.tm_mday
 
-      #newfichier = "/home/pi/data/data"+jour+".txt"
-      #os.rename("/home/pi/data/data.txt", newfichier.strip())
-      #os.remove("data.txt")
+      print maintenant.tm_mon
+
+      if mois != maintenant.tm_mon:
+
+        mois = maintenant.tm_mon
+        annee = maintenant.tm_year
+            
+        texte = convdate(mois , annee)
+
+        newfichier = "data"+texte+".txt"
+        os.rename(addrdata, newfichier.strip())
+        fichier = open(addrdata, "a")
+        fichier.close()
+
+      else:
+
+        print("Changement de nom déjà réalisé dans ce mois")
 
     else:
 
@@ -122,4 +166,4 @@ while 1:
 
   else:
 
-    print("Se n'est pas le moment d'enregistrer")
+    print("Ce n'est pas le moment d'enregistrer")
